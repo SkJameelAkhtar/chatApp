@@ -37,10 +37,10 @@ const SettingsPage = () => {
               onClick={() => setTheme(t)}
             >
               <div
-                className="relative h-8 w-full rounded-md overflow-hidden"
+                className="relative h-[30px] w-full rounded-md overflow-hidden"
                 data-theme={t}
               >
-                <div className="absolute inset-0 grid grid-cols-4 gap-px p-1">
+                <div className="absolute inset-0 grid grid-cols-4 gap-[5px] p-1">
                   <div className="rounded bg-primary"></div>
                   <div className="rounded bg-secondary"></div>
                   <div className="rounded bg-accent"></div>

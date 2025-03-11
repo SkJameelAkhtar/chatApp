@@ -1,6 +1,7 @@
 import { generateToken } from "../lib/utils.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
+import cloudinary from "../lib/cloudinary.js";
 
 export const signup = async (req, res) => {
   const { fullName, email, password } = req.body;
@@ -10,16 +11,12 @@ export const signup = async (req, res) => {
     }
 
     if (password.length < 6) {
-      return res
-        .status(400)
-        .json({ message: "Password must be atleast 6 characters" });
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
     const user = await User.findOne({ email });
 
-    if (user) {
-      return res.status(400).json({ message: "Email already exists" });
-    }
+    if (user) return res.status(400).json({ message: "Email already exists" });
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -31,6 +28,7 @@ export const signup = async (req, res) => {
     });
 
     if (newUser) {
+      // generate jwt token here
       generateToken(newUser._id, res);
       await newUser.save();
 
@@ -44,7 +42,7 @@ export const signup = async (req, res) => {
       res.status(400).json({ message: "Invalid user data" });
     }
   } catch (error) {
-    console.log("Error in signupcontroller", error.message);
+    console.log("Error in signup controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -55,12 +53,12 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ messgae: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-      return res.status(400).json({ message: "Invalid Credentials" });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     generateToken(user._id, res);
@@ -92,8 +90,8 @@ export const updateProfile = async (req, res) => {
     const { profilePic } = req.body;
     const userId = req.user._id;
 
-    if (!pofilePic) {
-      return res.status(400).json({ message: "Profilepic is required" });
+    if (!profilePic) {
+      return res.status(400).json({ message: "Profile pic is required" });
     }
 
     const uploadResponse = await cloudinary.uploader.upload(profilePic);
@@ -104,17 +102,18 @@ export const updateProfile = async (req, res) => {
     );
 
     res.status(200).json(updatedUser);
+    console.log("ProfilePic updated successfully");
   } catch (error) {
     console.log("error in update profile:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-export const checkAuth = (req, res) =>{
-  try{
+export const checkAuth = (req, res) => {
+  try {
     res.status(200).json(req.user);
-  }catch(error){
-    console.log("error in checkAuth controller", error.message);
-    res.status(500).json({message: "Internal Server Error"});
+  } catch (error) {
+    console.log("Error in checkAuth controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
